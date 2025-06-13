@@ -28,14 +28,21 @@ app.use(helmet({
 
 // CORS configuration
 const allowedOrigins = [
-  'http://localhost:5173',  // Local development
-  'http://localhost:3000',  // Local development
-  '*'  // Allow all origins for now - you can restrict this later
+  'http://localhost:3000',            // local frontend
+  'https://your-frontend-domain.com'  // deployed frontend (e.g., Vercel)
 ];
 
-app.use(cors({ 
-  origin: '*',  // Allow all origins
-  credentials: true 
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (e.g., curl, mobile apps)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(new Error('CORS not allowed from this origin: ' + origin), false);
+    }
+  },
+  credentials: true
 }));
 
 // Rate limiting
