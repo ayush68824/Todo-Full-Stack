@@ -29,7 +29,6 @@ app.use(helmet({
 // CORS configuration
 const allowedOrigins = [
   'http://localhost:3000',            // local frontend
-  'https://your-frontend-domain.com'  // deployed frontend (e.g., Vercel)
 ];
 
 app.use(cors({
