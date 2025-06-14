@@ -5,6 +5,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
+const fs = require('fs');
 const authRoutes = require('./routes/auth');
 const taskRoutes = require('./routes/tasks');
 const authenticateUser = require('./middleware/auth'); // <-- import as a function!
@@ -62,7 +63,6 @@ if (!fs.existsSync(avatarsDir)) {
   console.log('Created directory:', avatarsDir);
 }
 
-
 // Serve static files from the public directory
 const publicPath = path.join(__dirname, '../public');
 console.log('Serving static files from:', publicPath);
@@ -74,7 +74,21 @@ app.get('/', (req, res) => {
     name: "Todo API",
     version: "1.0.0",
     description: "RESTful API for Todo Application",
-    // ... (rest of your documentation unchanged)
+    endpoints: {
+      auth: {
+        register: "POST /api/auth/register",
+        login: "POST /api/auth/login",
+        googleAuth: "GET /api/auth/google",
+        logout: "POST /api/auth/logout"
+      },
+      tasks: {
+        getAll: "GET /api/tasks",
+        create: "POST /api/tasks",
+        getOne: "GET /api/tasks/:id",
+        update: "PUT /api/tasks/:id",
+        delete: "DELETE /api/tasks/:id"
+      }
+    }
   });
 });
 
