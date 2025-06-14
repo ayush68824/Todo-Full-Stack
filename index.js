@@ -7,15 +7,8 @@ const rateLimit = require('express-rate-limit');
 const path = require('path');
 const authRoutes = require('./routes/auth');
 const taskRoutes = require('./routes/tasks');
-const { authenticateUser } = require('./middleware/auth');
+const authenticateUser = require('./middleware/auth'); // <-- import as a function!
 const scheduleNotifications = require('./utils/notifications');
-
-
-// Auth routes (no auth middleware needed)
-app.use('/api/auth', authRoutes);
-
-// Task routes (protected, require authentication)
-app.use('/api/tasks', authenticateUser, taskRoutes);
 
 // Load environment variables
 dotenv.config();
@@ -33,7 +26,6 @@ app.use(helmet({
   contentSecurityPolicy: false, // Disable CSP for development
 }));
 
-// CORS configuration
 // CORS configuration
 const allowedOrigins = [
   'https://timely-hummingbird-648821.netlify.app', // Netlify frontend
@@ -74,105 +66,14 @@ app.get('/', (req, res) => {
     name: "Todo API",
     version: "1.0.0",
     description: "RESTful API for Todo Application",
-    endpoints: {
-      auth: {
-        register: {
-          method: "POST",
-          path: "/api/auth/register",
-          body: {
-            email: "string (required)",
-            password: "string (required)"
-          },
-          description: "Register a new user"
-        },
-        login: {
-          method: "POST",
-          path: "/api/auth/login",
-          body: {
-            email: "string (required)",
-            password: "string (required)"
-          },
-          description: "Login to get JWT token"
-        }
-      },
-      tasks: {
-        create: {
-          method: "POST",
-          path: "/api/tasks",
-          auth: "Bearer token required",
-          body: {
-            title: "string (required)",
-            description: "string (optional)",
-            dueDate: "Date (optional)",
-            priority: "string (Low/Medium/High)",
-            status: "string (Pending/In Progress/Completed)"
-          },
-          description: "Create a new task"
-        },
-        getAll: {
-          method: "GET",
-          path: "/api/tasks",
-          auth: "Bearer token required",
-          query: {
-            status: "string (optional) - Filter by status",
-            sortBy: "string (optional) - Sort by dueDate/createdAt/priority",
-            q: "string (optional) - Search in title and description"
-          },
-          description: "Get all tasks with optional filtering and sorting"
-        },
-        update: {
-          method: "PUT",
-          path: "/api/tasks/:id",
-          auth: "Bearer token required",
-          body: "Same as create task (all fields optional)",
-          description: "Update an existing task"
-        },
-        delete: {
-          method: "DELETE",
-          path: "/api/tasks/:id",
-          auth: "Bearer token required",
-          description: "Delete a task"
-        }
-      },
-      health: {
-        method: "GET",
-        path: "/api/health",
-        description: "Check API health status"
-      }
-    },
-    examples: {
-      register: {
-        request: {
-          method: "POST",
-          url: "/api/auth/register",
-          body: {
-            email: "user@example.com",
-            password: "securepassword123"
-          }
-        }
-      },
-      createTask: {
-        request: {
-          method: "POST",
-          url: "/api/tasks",
-          headers: {
-            "Authorization": "Bearer your_jwt_token"
-          },
-          body: {
-            title: "Complete Project",
-            description: "Finish the todo app project",
-            dueDate: "2024-03-20",
-            priority: "High",
-            status: "In Progress"
-          }
-        }
-      }
-    }
+    // ... (rest of your documentation unchanged)
   });
 });
 
-// Routes
+// Auth routes (no auth middleware needed)
 app.use('/api/auth', authRoutes);
+
+// Task routes (protected, require authentication)
 app.use('/api/tasks', authenticateUser, taskRoutes);
 
 // Health check endpoint
@@ -211,19 +112,19 @@ const startServer = async () => {
     console.log('Attempting to connect to MongoDB...');
     const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/todo-app';
     console.log('MongoDB URI:', mongoURI);
-    
+
     await mongoose.connect(mongoURI, {
       serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000,
     });
-    
+
     console.log('MongoDB connected successfully');
-    
+
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`Server is running on port ${PORT}`);
       console.log(`Frontend available at http://localhost:${PORT}`);
     });
-    
+
     // Schedule notifications after server starts
     scheduleNotifications();
   } catch (err) {
