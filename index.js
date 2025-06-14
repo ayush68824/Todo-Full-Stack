@@ -27,13 +27,16 @@ app.use(helmet({
 }));
 
 // CORS configuration
+// CORS configuration
 const allowedOrigins = [
-  'http://localhost:3000',            // local frontend
+  'https://timely-hummingbird-648821.netlify.app', // Netlify frontend
+  'http://localhost:5173',                        // Vite local dev (optional)
+  'http://localhost:3000',                        // React local dev (optional)
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (e.g., curl, mobile apps)
+    // Allow requests with no origin (like curl, mobile apps)
     if (!origin) return callback(null, true);
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
