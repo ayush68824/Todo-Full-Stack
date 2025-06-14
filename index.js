@@ -10,6 +10,13 @@ const taskRoutes = require('./routes/tasks');
 const { authenticateUser } = require('./middleware/auth');
 const scheduleNotifications = require('./utils/notifications');
 
+
+// Auth routes (no auth middleware needed)
+app.use('/api/auth', authRoutes);
+
+// Task routes (protected, require authentication)
+app.use('/api/tasks', authenticateUser, taskRoutes);
+
 // Load environment variables
 dotenv.config();
 
