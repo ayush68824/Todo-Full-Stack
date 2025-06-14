@@ -62,10 +62,6 @@ if (!fs.existsSync(avatarsDir)) {
   console.log('Created directory:', avatarsDir);
 }
 
-// Serve static files from the public directory
-const publicPath = path.join(__dirname, 'public');
-console.log('Serving static files from:', publicPath);
-app.use(express.static(publicPath));
 
 // Serve static files from the public directory
 const publicPath = path.join(__dirname, '../public');
