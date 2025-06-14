@@ -1,16 +1,25 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
-const { OAuth2Client } = require('google-auth-library');
+const multer = require('multer');
+const path = require('path');
 const User = require('../models/User');
-const authMiddleware = require('../middleware/auth');
+const authenticateUser = require('../middleware/auth');
 
 const router = express.Router();
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+// Multer setup for avatar upload (optional)
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, 'public/avatars/'),
+  filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname))
+});
+const upload = multer({ storage });
 
 // Register
-router.post('/register', async (req, res) => {
+router.post('/register', upload.single('avatar'), async (req, res) => {
   try {
-    const user = new User(req.body);
+    const { name, email, password } = req.body;
+    const avatar = req.file ? `/avatars/${req.file.filename}` : undefined;
+    const user = new User({ name, email, password, avatar });
     await user.save();
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
     const userObj = user.toObject();
@@ -38,7 +47,10 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Google Auth
+// Google Auth (if you want it)
+const { OAuth2Client } = require('google-auth-library');
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
 router.post('/google', async (req, res) => {
   try {
     const { token } = req.body;
@@ -65,10 +77,13 @@ router.post('/google', async (req, res) => {
 });
 
 // Profile Update
-router.put('/profile', authMiddleware, async (req, res) => {
+router.put('/profile', authenticateUser, upload.single('avatar'), async (req, res) => {
   try {
     const userId = req.userId;
     const updates = req.body;
+    if (req.file) {
+      updates.avatar = `/avatars/${req.file.filename}`;
+    }
     const user = await User.findByIdAndUpdate(userId, updates, { new: true });
     if (!user) return res.status(404).json({ error: 'User not found' });
     const userObj = user.toObject();
@@ -77,6 +92,11 @@ router.put('/profile', authMiddleware, async (req, res) => {
   } catch (err) {
     res.status(400).json({ error: 'Profile update failed', details: err.message });
   }
+});
+
+// Dummy Logout (optional, for frontend compatibility)
+router.post('/logout', (req, res) => {
+  res.json({ message: 'Logged out' });
 });
 
 module.exports = router;
