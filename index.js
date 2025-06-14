@@ -55,6 +55,18 @@ app.use(limiter);
 
 app.use(express.json());
 
+// Ensure public/avatars directory exists
+const avatarsDir = path.join(__dirname, 'public', 'avatars');
+if (!fs.existsSync(avatarsDir)) {
+  fs.mkdirSync(avatarsDir, { recursive: true });
+  console.log('Created directory:', avatarsDir);
+}
+
+// Serve static files from the public directory
+const publicPath = path.join(__dirname, 'public');
+console.log('Serving static files from:', publicPath);
+app.use(express.static(publicPath));
+
 // Serve static files from the public directory
 const publicPath = path.join(__dirname, '../public');
 console.log('Serving static files from:', publicPath);
